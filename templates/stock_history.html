@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock History - {{ stock.name }}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --background: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--background);
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2563eb, #4f46e5);
+            border-radius: 1rem;
+            padding: 2rem;
+            color: white;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+            opacity: 0.4;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .title {
+            font-size: 2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .stock-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            backdrop-filter: blur(10px);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            transition: transform 0.2s ease;
+        }
+
+        .info-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .info-icon {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .info-content {
+            flex: 1;
+        }
+
+        .info-label {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .info-value {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            transition: transform 0.2s ease;
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .stat-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--background);
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+            transition: transform 0.2s ease;
+        }
+
+        .stat-item:hover {
+            transform: translateX(5px);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .table-container {
+            background: var(--card-bg);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        th {
+            background: var(--background);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-secondary);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: var(--background);
+        }
+
+        .transaction-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .transaction-in {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .transaction-out {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .details-box {
+            background: var(--background);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+        }
+
+        .details-row {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .details-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            min-width: 80px;
+        }
+
+        .recorded-by {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .recorded-name {
+            font-weight: 500;
+        }
+
+        .recorded-time {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .summary-card {
+            background: var(--primary-color);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+
+        .summary-label {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header {
+                padding: 1.5rem;
+            }
+
+            .stock-info {
+                grid-template-columns: 1fr;
+            }
+
+            .title {
+                font-size: 1.5rem;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <h1 class="title">
+                    <i class="fas fa-history"></i>
+                    Stock History
+                </h1>
+                <a href="{{ url_for('stock_inventory') }}" class="btn">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Inventory
+                </a>
+            </div>
+
+            <div class="stock-info">
+                <div class="info-item">
+                    <i class="fas fa-box info-icon"></i>
+                    <div class="info-content">
+                        <div class="info-label">Item Name</div>
+                        <div class="info-value">{{ stock.name }}</div>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-tag info-icon"></i>
+                    <div class="info-content">
+                        <div class="info-label">Category</div>
+                        <div class="info-value">{{ stock.category }}</div>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-ruler info-icon"></i>
+                    <div class="info-content">
+                        <div class="info-label">Measure</div>
+                        <div class="info-value">{{ stock.measure }}</div>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-boxes info-icon"></i>
+                    <div class="info-content">
+                        <div class="info-label">Current Stock</div>
+                        <div class="info-value">{{ "%.2f"|format((analysis.total_in or 0) - (analysis.total_out or 0)) }} {{ stock.measure }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <i class="fas fa-chart-line fa-lg" style="color: var(--primary-color)"></i>
+                    <h3 class="stat-title">Quantity Analysis</h3>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">
+                        <i class="fas fa-arrow-up" style="color: var(--success)"></i>
+                        Total Stock In
+                    </div>
+                    <div class="stat-value">{{ "%.2f"|format(analysis.total_in or 0) }} {{ stock.measure }}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">
+                        <i class="fas fa-arrow-down" style="color: var(--danger)"></i>
+                        Total Stock Out
+                    </div>
+                    <div class="stat-value">{{ "%.2f"|format(analysis.total_out or 0) }} {{ stock.measure }}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">
+                        <i class="fas fa-balance-scale" style="color: var(--primary-color)"></i>
+                        Current Balance
+                    </div>
+                    <div class="stat-value">{{ "%.2f"|format((analysis.total_in or 0) - (analysis.total_out or 0)) }} {{ stock.measure }}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">
+                        <i class="fas fa-exchange-alt" style="color: var(--warning)"></i>
+                        Total Transactions
+                    </div>
+                    <div class="stat-value">{{ analysis.total_transactions }}</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <i class="fas fa-money-bill-wave fa-lg" style="color: var(--success)"></i>
+                    <h3 class="stat-title">Price Analysis</h3>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">
+                        <i class="fas fa-calculator"></i>
+                        Average Price
+                    </div>
+                    <div class="stat-value">KSH {{ "%.2f"|format(analysis.avg_price or 0) }}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">
+                        <i class="fas fa-arrow-up" style="color: var(--danger)"></i>
+                        Highest Price
+                    </div>
+                    <div class="stat-value">KSH {{ "%.2f"|format(analysis.max_price or 0) }}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">
+                        <i class="fas fa-arrow-down" style="color: var(--success)"></i>
+                        Lowest Price
+                    </div>
+                    <div class="stat-value">KSH {{ "%.2f"|format(analysis.min_price or 0) }}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">
+                        <i class="fas fa-coins" style="color: var(--warning)"></i>
+                        Total Value
+                    </div>
+                    <div class="stat-value">KSH {{ "%.2f"|format((analysis.total_in or 0) * (analysis.avg_price or 0)) }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="table-header">
+                <h2 class="stat-title">
+                    <i class="fas fa-truck" style="color: var(--primary-color)"></i>
+                    Supplier Analysis
+                </h2>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Supplier</th>
+                        <th>Supply Count</th>
+                        <th>Total Supplied</th>
+                        <th>Average Price</th>
+                        <th>Total Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if supplier_analysis %}
+                        {% for supplier in supplier_analysis %}
+                            <tr>
+                                <td>
+                                    <div class="recorded-by">
+                                        <span class="recorded-name">{{ supplier.supplier }}</span>
+                                        <span class="recorded-time">Regular Supplier</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="transaction-badge transaction-in">
+                                        <i class="fas fa-box"></i>
+                                        {{ supplier.supply_count }}
+                                    </span>
+                                </td>
+                                <td>{{ "%.2f"|format(supplier.total_supplied) }} {{ stock.measure }}</td>
+                                <td>KSH {{ "%.2f"|format(supplier.avg_price) }}</td>
+                                <td>
+                                    <strong>KSH {{ "%.2f"|format(supplier.total_supplied * supplier.avg_price) }}</strong>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="empty-state">
+                                <div style="text-align: center; padding: 2rem;">
+                                    <i class="fas fa-inbox fa-2x" style="color: var(--text-secondary)"></i>
+                                    <p style="margin-top: 1rem; color: var(--text-secondary)">No supplier data available</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-container">
+            <div class="table-header">
+                <h2 class="stat-title">
+                    <i class="fas fa-exchange-alt" style="color: var(--primary-color)"></i>
+                    Transaction History
+                </h2>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Quantity</th>
+                        <th>Details</th>
+                        <th>Recorded By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if history %}
+                        {% set running_balance = 0 %}
+                        {% for transaction in history %}
+                            {% set running_balance = running_balance + (transaction.quantity if transaction.transaction_type == 'in' else -transaction.quantity) %}
+                            <tr>
+                                <td>
+                                    <div class="recorded-by">
+                                        <span class="recorded-name">{{ transaction.transaction_date.strftime('%Y-%m-%d') }}</span>
+                                        <span class="recorded-time">{{ transaction.transaction_date.strftime('%H:%M') }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="transaction-badge transaction-{{ transaction.transaction_type }}">
+                                        <i class="fas fa-{{ 'arrow-up' if transaction.transaction_type == 'in' else 'arrow-down' }}"></i>
+                                        {{ transaction.transaction_type.upper() }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="stat-value">{{ "%.2f"|format(transaction.quantity) }} {{ stock.measure }}</div>
+                                    <div class="recorded-time">Balance: {{ "%.2f"|format(running_balance) }}</div>
+                                </td>
+                                <td>
+                                    <div class="details-box">
+                                        {% if transaction.transaction_type == 'in' %}
+                                            <div class="details-row">
+                                                <span class="details-label">Price</span>
+                                                <span>KSH {{ "%.2f"|format(transaction.unit_price) }}</span>
+                                            </div>
+                                            <div class="details-row">
+                                                <span class="details-label">Total</span>
+                                                <span>KSH {{ "%.2f"|format(transaction.quantity * transaction.unit_price) }}</span>
+                                            </div>
+                                            <div class="details-row">
+                                                <span class="details-label">Supplier</span>
+                                                <span>{{ transaction.supplier }}</span>
+                                            </div>
+                                        {% else %}
+                                            <div class="details-row">
+                                                <span class="details-label">Purpose</span>
+                                                <span>{{ transaction.purpose }}</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="recorded-by">
+                                        <span class="recorded-name">{{ transaction.recorded_by_name }}</span>
+                                        <span class="recorded-time">{{ transaction.transaction_date.strftime('%Y-%m-%d %H:%M') }}</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="empty-state">
+                                <div style="text-align: center; padding: 2rem;">
+                                    <i class="fas fa-history fa-2x" style="color: var(--text-secondary)"></i>
+                                    <p style="margin-top: 1rem; color: var(--text-secondary)">No transaction history found</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="summary-label">Total Stock In</div>
+                <div class="summary-value">{{ "%.2f"|format(analysis.total_in or 0) }} {{ stock.measure }}</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Total Stock Out</div>
+                <div class="summary-value">{{ "%.2f"|format(analysis.total_out or 0) }} {{ stock.measure }}</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Current Balance</div>
+                <div class="summary-value">{{ "%.2f"|format((analysis.total_in or 0) - (analysis.total_out or 0)) }} {{ stock.measure }}</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Total Value</div>
+                <div class="summary-value">KSH {{ "%.2f"|format((analysis.total_in or 0) * (analysis.avg_price or 0)) }}</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

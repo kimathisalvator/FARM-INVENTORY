@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Reports</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .report-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 1200px;
+        }
+
+        .report-header {
+            background: #0d6efd;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .report-header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .category-section {
+            margin-bottom: 30px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .category-header {
+            padding: 15px 20px;
+            font-size: 18px;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .category-feed { background-color: #e8f5e9; color: #2e7d32; }
+        .category-medicine { background-color: #e3f2fd; color: #1565c0; }
+        .category-equipment { background-color: #fff3e0; color: #f57c00; }
+        .category-tools { background-color: #f3e5f5; color: #7b1fa2; }
+        .category-supplies { background-color: #e0f2f1; color: #00695c; }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead {
+            background-color: rgba(0,0,0,0.05);
+        }
+
+        .table th {
+            padding: 12px 15px;
+            font-weight: 500;
+            border: none;
+        }
+
+        .table td {
+            padding: 12px 15px;
+            vertical-align: middle;
+            border-color: #f0f0f0;
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(0,0,0,0.02);
+        }
+
+        .quantity-badge {
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-weight: 500;
+            background-color: rgba(0,0,0,0.05);
+        }
+
+        .category-count {
+            background: rgba(255,255,255,0.3);
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 14px;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .no-data i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #dee2e6;
+        }
+
+        .category-content {
+            display: none;
+        }
+
+        .category-content.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .report-container {
+                margin: 10px;
+                padding: 15px;
+            }
+
+            .report-header {
+                padding: 15px;
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .table-responsive {
+                border-radius: 8px;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="report-container">
+        <div class="report-header">
+            <div>
+                <h1><i class="fas fa-chart-bar me-2"></i>Stock Reports</h1>
+            </div>
+            <div>
+                <a href="{{ url_for('manager') }}" class="btn btn-light btn-sm">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+
+        {% if stock_data %}
+            {# Group stock data by category #}
+            {% set categories = {} %}
+            {% for item in stock_data %}
+                {% if item.category not in categories %}
+                    {% set _ = categories.update({item.category: []}) %}
+                {% endif %}
+                {% set _ = categories[item.category].append(item) %}
+            {% endfor %}
+
+            {% for category, items in categories.items() %}
+                <div class="category-section">
+                    <div class="category-header category-{{ category|lower }}" onclick="toggleCategory('{{ category|lower }}')">
+                        <div>
+                            <i class="fas fa-chevron-down me-2"></i>
+                            {{ category }}
+                        </div>
+                        <span class="category-count">{{ items|length }} items</span>
+                    </div>
+                    <div class="category-content" id="category-{{ category|lower }}">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Quantity</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in items %}
+                                        <tr>
+                                            <td>{{ item.name }}</td>
+                                            <td><span class="quantity-badge">{{ item.quantity }}</span></td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-data">
+                <i class="fas fa-box-open d-block"></i>
+                <p class="mb-0">No stock data available.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleCategory(categoryId) {
+            const content = document.getElementById('category-' + categoryId);
+            content.classList.toggle('show');
+            
+            const header = content.previousElementSibling;
+            const icon = header.querySelector('i.fas');
+            icon.classList.toggle('fa-chevron-down');
+            icon.classList.toggle('fa-chevron-up');
+        }
+
+        // Show the first category by default
+        window.onload = function() {
+            const firstCategory = document.querySelector('.category-content');
+            if (firstCategory) {
+                firstCategory.classList.add('show');
+                const icon = firstCategory.previousElementSibling.querySelector('i.fas');
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            }
+        }
+    </script>
+</body>
+</html>

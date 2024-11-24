@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .dashboard-card {
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+        .stats-card {
+            border-left: 4px solid #0d6efd;
+        }
+        .sidebar {
+            min-height: calc(100vh - 56px);
+            background-color: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+        }
+        .nav-link {
+            color: #333;
+        }
+        .nav-link:hover {
+            background-color: #e9ecef;
+        }
+        .nav-link.active {
+            background-color: #0d6efd;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-boxes me-2"></i>
+                Inventory System
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i>
+                            {{ session['name'] }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-user-cog me-2"></i>Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">
+                                <i class="fas fa-sign-out-alt me-2"></i>Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar py-3">
+                <div class="list-group">
+                    <a href="#" class="list-group-item list-group-item-action active">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                    <a href="{{ url_for('hr_management') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-users me-2"></i>HR Management
+                    </a>
+                    <a href="{{ url_for('stock_management') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-boxes me-2"></i>Stock Management
+                    </a>
+                    <a href="{{ url_for('feed_ingridients') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-chart-bar me-2"></i>feed_ingridients
+                    </a>
+                    <a href="{{ url_for('farm_analysis') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-chart-bar me-2"></i>Farm Analysis
+                    </a>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 py-3">
+                <div class="container">
+                    <!-- Welcome Section -->
+                    <div class="row mb-4">
+                        <div class="col">
+                            <h2 class="mb-3">Welcome, {{ session['name'] }}!</h2>
+                            <p class="text-muted">Here's what's happening in your inventory system today.</p>
+                        </div>
+                    </div>
+
+                    <!-- Quick Access Cards -->
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="card dashboard-card h-100">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                                    <h5 class="card-title">HR Management</h5>
+                                    <p class="card-text">Manage employees, departments, and payroll</p>
+                                    <a href="{{ url_for('hr_management') }}" class="btn btn-primary">Access HR</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card dashboard-card h-100">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-boxes fa-3x text-success mb-3"></i>
+                                    <h5 class="card-title">Stock Management</h5>
+                                    <p class="card-text">Track inventory, orders, and suppliers</p>
+                                    <a href="{{ url_for('stock_management') }}" class="btn btn-success">Manage Stock</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card dashboard-card h-100">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-chart-bar fa-3x text-warning mb-3"></i>
+                                    <h5 class="card-title">Feed Ingridients</h5>
+                                    <p class="card-text">View Feed Ingridients</p>
+                                    <a href="{{ url_for('feed_ingridients') }}" class="btn btn-warning">View Analysis</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card dashboard-card h-100">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-chart-bar fa-3x text-warning mb-3"></i>
+                                    <h5 class="card-title">Farm Analysis</h5>
+                                    <p class="card-text">View farm performance and analytics</p>
+                                    <a href="{{ url_for('farm_analysis') }}" class="btn btn-warning">View Analysis</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card dashboard-card h-100">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-chart-bar fa-3x text-warning mb-3"></i>
+                                    <h5 class="card-title">Stock Audit</h5>
+                                    <p class="card-text">View Stock Audit</p>
+                                    <a href="{{ url_for('stock_audit') }}" class="btn btn-warning">Stock Audit</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
+</body>
+</html>

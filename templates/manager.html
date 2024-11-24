@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farm Inventory Manager</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --danger-color: #dc2626;
+            --success-color: #059669;
+        }
+        
+        body {
+            background-color: #f3f4f6;
+            min-height: 100vh;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .table-header {
+            background: linear-gradient(to right, #2563eb, #3b82f6);
+            color: white;
+        }
+        
+        .btn {
+            transition: all 0.3s ease;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(to right, #2563eb, #3b82f6);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(to right, #dc2626, #ef4444);
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(to right, #059669, #10b981);
+            color: white;
+        }
+        
+        .form-input {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            outline: none;
+        }
+        
+        .table-row-even {
+            background-color: #f8fafc;
+        }
+        
+        .table-row:hover {
+            background-color: #f1f5f9;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+        }
+
+        .input-group input {
+            padding-left: 2.5rem;
+        }
+
+        .page-title {
+            background: linear-gradient(to right, #1e40af, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        .transaction-form {
+            background: linear-gradient(145deg, #ffffff, #f3f4f6);
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-low {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+
+        .status-good {
+            background-color: #d1fae5;
+            color: #059669;
+        }
+    </style>
+</head>
+<body>
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="page-title text-4xl mb-2">Farm Inventory Manager</h1>
+                <p class="text-gray-600">Manage your stock efficiently</p>
+            </div>
+            <div class="input-group">
+                <i class="fas fa-search"></i>
+                <input type="search" 
+                       placeholder="Search inventory..." 
+                       class="form-input w-64"
+                       aria-label="Search inventory">
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="card">
+            <table class="w-full">
+                <thead>
+                    <tr class="table-header">
+                        <th class="text-left px-6 py-4 text-sm font-semibold">Category</th>
+                        <th class="text-left px-6 py-4 text-sm font-semibold">Name</th>
+                        <th class="text-left px-6 py-4 text-sm font-semibold">Current Stock</th>
+                        <th class="text-left px-6 py-4 text-sm font-semibold">Average Price</th>
+                        <th class="text-left px-6 py-4 text-sm font-semibold">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in inventory %}
+                    <tr class="table-row {% if loop.index is even %}table-row-even{% endif %} border-b border-gray-100">
+                        <td class="px-6 py-4">
+                            <span class="text-sm font-medium text-gray-900">{{ item.category }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-sm font-medium text-gray-900">{{ item.name }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="status-badge {% if item.quantity and item.quantity < 10 %}status-low{% else %}status-good{% endif %}">
+                                {{ item.quantity|default(0, true) }} {{ item.measure }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-sm font-medium text-gray-900">${{ "%.2f"|format(item.avg_price|float) }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex space-x-3">
+                                <button onclick="showForm('in', {{ item.id }})" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i>
+                                    Stock In
+                                </button>
+                                <button onclick="showForm('out', {{ item.id }})" class="btn btn-danger">
+                                    <i class="fas fa-minus"></i>
+                                    Stock Out
+                                </button>
+                            </div>
+
+                            <!-- Stock In Form -->
+                            <form id="stockin_{{ item.id }}" action="{{ url_for('stock_transaction') }}" method="POST" class="hidden transaction-form">
+                                <input type="hidden" name="stock_id" value="{{ item.id }}">
+                                <input type="hidden" name="transaction_type" value="in">
+                                <div class="flex space-x-4">
+                                    <div class="input-group">
+                                        <i class="fas fa-hashtag"></i>
+                                        <input type="number" name="quantity" step="0.01" required 
+                                               class="form-input" placeholder="Quantity">
+                                    </div>
+                                    <div class="input-group">
+                                        <i class="fas fa-dollar-sign"></i>
+                                        <input type="number" name="unit_price" step="0.01" required 
+                                               class="form-input" placeholder="Unit Price">
+                                    </div>
+                                    <div class="input-group">
+                                        <i class="fas fa-truck"></i>
+                                        <input type="text" name="supplier" required 
+                                               class="form-input" placeholder="Supplier">
+                                    </div>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-check"></i>
+                                        Submit
+                                    </button>
+                                    <button type="button" onclick="hideForm('in', {{ item.id }})" class="btn">
+                                        <i class="fas fa-times"></i>
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+
+                            <!-- Stock Out Form -->
+                            <form id="stockout_{{ item.id }}" action="{{ url_for('stock_transaction') }}" method="POST" class="hidden transaction-form">
+                                <input type="hidden" name="stock_id" value="{{ item.id }}">
+                                <input type="hidden" name="transaction_type" value="out">
+                                <div class="flex space-x-4">
+                                    <div class="input-group">
+                                        <i class="fas fa-hashtag"></i>
+                                        <input type="number" name="quantity" step="0.01" required 
+                                               class="form-input" placeholder="Quantity">
+                                    </div>
+                                    <div class="input-group flex-grow">
+                                        <i class="fas fa-comment"></i>
+                                        <input type="text" name="purpose" required 
+                                               class="form-input w-full" placeholder="Purpose">
+                                    </div>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-check"></i>
+                                        Submit
+                                    </button>
+                                    <button type="button" onclick="hideForm('out', {{ item.id }})" class="btn">
+                                        <i class="fas fa-times"></i>
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function showForm(type, id) {
+            document.querySelectorAll('form[id^="stockin_"], form[id^="stockout_"]').forEach(form => {
+                form.classList.add('hidden');
+            });
+            
+            const form = document.getElementById('stock' + type + '_' + id);
+            form.classList.remove('hidden');
+            form.querySelector('input[type="number"]').focus();
+        }
+
+        function hideForm(type, id) {
+            document.getElementById('stock' + type + '_' + id).classList.add('hidden');
+        }
+
+        // Enhanced form validation
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('input', function() {
+                if (this.value < 0) this.value = 0;
+            });
+        });
+
+        // Search functionality with highlighting
+        document.querySelector('input[type="search"]').addEventListener('input', function(e) {
+            const searchText = e.target.value.toLowerCase();
+            document.querySelectorAll('tbody tr').forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchText) ? '' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>

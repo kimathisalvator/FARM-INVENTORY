@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock In - {{ stock.name }}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --background: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --input-focus: #3b82f6;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--background);
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            overflow: hidden;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2563eb, #4f46e5);
+            padding: 2rem;
+            color: white;
+            position: relative;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+            opacity: 0.4;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stock-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .stock-info h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stock-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-label {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.875rem;
+        }
+
+        .form-container {
+            padding: 2rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--input-focus);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .input-hint {
+            margin-top: 0.25rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--text-secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .alert {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .alert-error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 1rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <h1 class="title">
+                    <i class="fas fa-arrow-circle-up"></i>
+                    Stock In
+                </h1>
+                
+                <div class="stock-info">
+                    <h3>{{ stock.name }}</h3>
+                    <div class="stock-info-grid">
+                        <div class="info-item">
+                            <i class="fas fa-tag"></i>
+                            <div>
+                                <div class="info-label">Category</div>
+                                <div>{{ stock.category }}</div>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-ruler"></i>
+                            <div>
+                                <div class="info-label">Measure</div>
+                                <div>{{ stock.measure }}</div>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-boxes"></i>
+                            <div>
+                                <div class="info-label">Current Stock</div>
+                                <div>{{ stock.current_quantity }} {{ stock.measure }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('stock_in', stock_id=stock.id) }}" id="stockInForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="quantity">Quantity ({{ stock.measure }})</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-box input-icon"></i>
+                            <input 
+                                type="number" 
+                                id="quantity" 
+                                name="quantity" 
+                                step="0.01" 
+                                required 
+                                min="0.01"
+                                placeholder="Enter quantity"
+                            >
+                        </div>
+                        <div class="input-hint">Enter the quantity in {{ stock.measure }}</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="unit_price">Unit Price (KSH)</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-tag input-icon"></i>
+                            <input 
+                                type="number" 
+                                id="unit_price" 
+                                name="unit_price" 
+                                step="0.01" 
+                                required 
+                                min="0.01"
+                                placeholder="Enter unit price"
+                            >
+                        </div>
+                        <div class="input-hint">Price per {{ stock.measure }}</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="supplier">Supplier</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-truck input-icon"></i>
+                            <input 
+                                type="text" 
+                                id="supplier" 
+                                name="supplier" 
+                                required
+                                placeholder="Enter supplier name"
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Save Stock In
+                    </button>
+                    <a href="{{ url_for('stock_inventory') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Inventory
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('stockInForm');
+            const quantityInput = document.getElementById('quantity');
+            const unitPriceInput = document.getElementById('unit_price');
+            const supplierInput = document.getElementById('supplier');
+
+            // Form validation
+            form.addEventListener('submit', function(e) {
+                let isValid = true;
+                
+                // Validate quantity
+                if (quantityInput.value <= 0) {
+                    isValid = false;
+                    showError(quantityInput, 'Quantity must be greater than 0');
+                }
+
+                // Validate unit price
+                if (unitPriceInput.value <= 0) {
+                    isValid = false;
+                    showError(unitPriceInput, 'Unit price must be greater than 0');
+                }
+
+                // Validate supplier
+                if (supplierInput.value.trim() === '') {
+                    isValid = false;
+                    showError(supplierInput, 'Supplier name is required');
+                }
+
+                if (!isValid) {
+                    e.preventDefault();
+                }
+            });
+
+            // Show error message
+            function showError(input, message) {
+                const formGroup = input.closest('.form-group');
+                let errorDiv = formGroup.querySelector('.error-message');
+                
+                if (!errorDiv) {
+                    errorDiv = document.createElement('div');
+                    errorDiv.className = 'error-message';
+                    errorDiv.style.cssText = `
+                        color: var(--danger);
+                        font-size: 0.875rem;
+                        margin-top: 0.5rem;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                    `;
+                    formGroup.appendChild(errorDiv);
+                }
+                
+                errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i>${message}`;
+                input.style.borderColor = 'var(--danger)';
+                
+                // Remove error after 3 seconds
+                setTimeout(() => {
+                    errorDiv.remove();
+                    input.style.borderColor = 'var(--border-color)';
+                }, 3000);
+            }
+
+            // Live total calculation
+            function updateTotal() {
+                const quantity = parseFloat(quantityInput.value) || 0;
+                const unitPrice = parseFloat(unitPriceInput.value) || 0;
+                const total = quantity * unitPrice;
+                
+                let totalDiv = document.getElementById('totalAmount');
+                if (!totalDiv) {
+                    totalDiv = document.createElement('div');
+                    totalDiv.id = 'totalAmount';
+                    totalDiv.className = 'total-amount';
+                    totalDiv.style.cssText = `
+                        background: var(--primary-color);
+                        color: white;
+                        padding: 1rem;
+                        border-radius: 0.5rem;
+                        margin-top: 1rem;
+                        font-weight: 500;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                    `;
+                    form.insertBefore(totalDiv, form.querySelector('.btn-group'));
+                }
+                
+                totalDiv.innerHTML = `
+                    <span>Total Amount:</span>
+                    <span>KSH ${total.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    })}</span>
+                `;
+            }
+
+            // Add input validation and formatting
+            function setupNumberInput(input) {
+                input.addEventListener('input', function() {
+                    // Remove non-numeric characters except decimal point
+                    this.value = this.value.replace(/[^\d.]/g, '');
+                    
+                    // Ensure only one decimal point
+                    const parts = this.value.split('.');
+                    if (parts.length > 2) {
+                        this.value = parts[0] + '.' + parts.slice(1).join('');
+                    }
+                    
+                    // Limit to 2 decimal places
+                    if (parts[1] && parts[1].length > 2) {
+                        this.value = parseFloat(this.value).toFixed(2);
+                    }
+                    
+                    updateTotal();
+                });
+            }
+
+            // Setup number inputs
+            setupNumberInput(quantityInput);
+            setupNumberInput(unitPriceInput);
+
+            // Add supplier name validation
+            supplierInput.addEventListener('input', function() {
+                // Remove any existing error message when user starts typing
+                const errorDiv = this.closest('.form-group').querySelector('.error-message');
+                if (errorDiv) {
+                    errorDiv.remove();
+                }
+                this.style.borderColor = 'var(--border-color)';
+            });
+
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Alt + S to submit form
+                if (e.altKey && e.key === 's') {
+                    e.preventDefault();
+                    form.submit();
+                }
+                
+                // Alt + B to go back
+                if (e.altKey && e.key === 'b') {
+                    e.preventDefault();
+                    window.location.href = "{{ url_for('stock_inventory') }}";
+                }
+            });
+
+            // Add hover tooltip for keyboard shortcuts
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.title = 'Alt + S';
+            const backBtn = form.querySelector('a.btn-secondary');
+            backBtn.title = 'Alt + B';
+        });
+    </script>
+
+    <style>
+        /* Additional styles for enhancements */
+        .error-message {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .total-amount {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* Input focus styles */
+        .input-wrapper:focus-within .input-icon {
+            color: var(--primary-color);
+        }
+
+        .input-wrapper:focus-within input {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Hover effects */
+        .info-item:hover {
+            transform: translateY(-2px);
+            transition: transform 0.2s ease;
+        }
+
+        /* Loading state */
+        .btn-loading {
+            position: relative;
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid transparent;
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</body>
+</html>

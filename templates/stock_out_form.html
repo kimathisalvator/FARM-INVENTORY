@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Out - {{ stock.name }}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #ef4444;
+            --primary-hover: #dc2626;
+            --background: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --input-focus: #ef4444;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--background);
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            overflow: hidden;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            padding: 2rem;
+            color: white;
+            position: relative;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+            opacity: 0.4;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stock-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .stock-info h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stock-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-label {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.875rem;
+        }
+
+        .quantity-indicator {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .quantity-badge {
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--primary-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 600;
+        }
+
+        .form-container {
+            padding: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            pointer-events: none;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            padding-left: 1rem;
+            resize: vertical;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--input-focus);
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+
+        .input-feedback {
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feedback-error {
+            color: var(--danger);
+            animation: shake 0.5s ease-in-out;
+        }
+
+        .feedback-warning {
+            color: var(--warning);
+        }
+
+        .feedback-success {
+            color: var(--success);
+        }
+
+        .quantity-preview {
+            background: var(--background);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: var(--text-secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .alert {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .alert-error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 1rem;
+            }
+
+            .stock-info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        .keyboard-shortcut {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            margin-left: auto;
+            color: rgba(255, 255, 255, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <h1 class="title">
+                    <i class="fas fa-arrow-circle-down"></i>
+                    Stock Out
+                </h1>
+                
+                <div class="stock-info">
+                    <h3>{{ stock.name }}</h3>
+                    <div class="stock-info-grid">
+                        <div class="info-item">
+                            <i class="fas fa-tag"></i>
+                            <div>
+                                <div class="info-label">Category</div>
+                                <div>{{ stock.category }}</div>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-ruler"></i>
+                            <div>
+                                <div class="info-label">Measure</div>
+                                <div>{{ stock.measure }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="quantity-indicator">
+                        <span>Current Stock Level:</span>
+                        <span class="quantity-badge">
+                            {{ stock.current_quantity }} {{ stock.measure }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('stock_out', stock_id=stock.id) }}" id="stockOutForm">
+                <div class="form-group">
+                    <label for="quantity">Quantity to Remove ({{ stock.measure }})</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-box input-icon"></i>
+                        <input 
+                            type="number" 
+                            id="quantity" 
+                            name="quantity" 
+                            step="0.01" 
+                            required 
+                            min="0.01" 
+                            max="{{ stock.current_quantity }}"
+                            placeholder="Enter quantity to remove"
+                        >
+                    </div>
+                    <div class="quantity-preview" id="quantityPreview">
+                        <span>Remaining after removal:</span>
+                        <span id="remainingQuantity">{{ stock.current_quantity }} {{ stock.measure }}</span>
+                    </div>
+                    <div id="quantityFeedback" class="input-feedback"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="purpose">Purpose for Removal</label>
+                    <textarea 
+                        id="purpose" 
+                        name="purpose" 
+                        required placeholder="Explain why you're removing this stock (minimum 10 characters required)..."
+                        rows="4"
+                    ></textarea>
+                    <div id="purposeFeedback" class="input-feedback"></div>
+                    <div class="char-counter" id="charCounter">0 characters (minimum 10)</div>
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
+                        <i class="fas fa-check"></i>
+                        Confirm Stock Out
+                        <span class="keyboard-shortcut">Alt + S</span>
+                    </button>
+                    <a href="{{ url_for('stock_inventory') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Inventory
+                        <span class="keyboard-shortcut">Alt + B</span>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('stockOutForm');
+            const quantityInput = document.getElementById('quantity');
+            const purposeInput = document.getElementById('purpose');
+            const remainingQuantity = document.getElementById('remainingQuantity');
+            const quantityFeedback = document.getElementById('quantityFeedback');
+            const purposeFeedback = document.getElementById('purposeFeedback');
+            const charCounter = document.getElementById('charCounter');
+            const submitBtn = document.getElementById('submitBtn');
+            const currentQuantity = {{ stock.current_quantity }};
+            const lowStockThreshold = 10;
+
+            function updateQuantityFeedback() {
+                const quantity = parseFloat(quantityInput.value) || 0;
+                const remaining = currentQuantity - quantity;
+                
+                remainingQuantity.textContent = `${remaining.toFixed(2)} {{ stock.measure }}`;
+
+                if (quantity <= 0) {
+                    setFeedback(quantityFeedback, 'error', 'Quantity must be greater than 0');
+                    return false;
+                }
+                
+                if (quantity > currentQuantity) {
+                    setFeedback(quantityFeedback, 'error', 'Quantity cannot exceed current stock');
+                    return false;
+                }
+
+                if (remaining < lowStockThreshold) {
+                    setFeedback(quantityFeedback, 'warning', 'Warning: This will result in low stock levels');
+                    return true;
+                }
+
+                setFeedback(quantityFeedback, 'success', 'Valid quantity');
+                return true;
+            }
+
+            function updatePurposeFeedback() {
+                const purpose = purposeInput.value.trim();
+                const charCount = purpose.length;
+                charCounter.textContent = `${charCount} character${charCount !== 1 ? 's' : ''} (minimum 10)`;
+
+                if (charCount < 10) {
+                    setFeedback(purposeFeedback, 'error', 'Please provide a more detailed purpose (minimum 10 characters)');
+                    return false;
+                }
+
+                setFeedback(purposeFeedback, 'success', 'Purpose description is valid');
+                return true;
+            }
+
+            function setFeedback(element, type, message) {
+                element.className = `input-feedback feedback-${type}`;
+                element.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'exclamation-circle'}"></i>${message}`;
+            }
+
+            function validateForm() {
+                const isQuantityValid = updateQuantityFeedback();
+                const isPurposeValid = updatePurposeFeedback();
+                submitBtn.disabled = !(isQuantityValid && isPurposeValid);
+            }
+
+            // Setup number input formatting
+            quantityInput.addEventListener('input', function() {
+                // Remove non-numeric characters except decimal point
+                this.value = this.value.replace(/[^\d.]/g, '');
+                
+                // Ensure only one decimal point
+                const parts = this.value.split('.');
+                if (parts.length > 2) {
+                    this.value = parts[0] + '.' + parts.slice(1).join('');
+                }
+                
+                // Limit to 2 decimal places
+                if (parts[1] && parts[1].length > 2) {
+                    this.value = parseFloat(this.value).toFixed(2);
+                }
+                
+                validateForm();
+            });
+
+            purposeInput.addEventListener('input', validateForm);
+
+            // Form submission
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (!updateQuantityFeedback() || !updatePurposeFeedback()) {
+                    return;
+                }
+
+                // Show loading state
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                
+                // Submit the form
+                this.submit();
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Alt + S to submit form
+                if (e.altKey && e.key === 's' && !submitBtn.disabled) {
+                    e.preventDefault();
+                    form.dispatchEvent(new Event('submit'));
+                }
+                
+                // Alt + B to go back
+                if (e.altKey && e.key === 'b') {
+                    e.preventDefault();
+                    window.location.href = "{{ url_for('stock_inventory') }}";
+                }
+            });
+
+            // Initialize form validation
+            validateForm();
+        });
+    </script>
+</body>
+</html>

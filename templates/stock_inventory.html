@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Inventory Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --gradient-primary: linear-gradient(135deg, #2563eb, #4f46e5);
+            --gradient-hover: linear-gradient(135deg, #1d4ed8, #4338ca);
+            --background: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes searchPulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--background);
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: pulse 2s infinite;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stat-change {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--success);
+            margin-top: 0.5rem;
+        }
+
+        .main-card {
+            background: var(--card-bg);
+            border-radius: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        .main-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .header {
+            background: var(--gradient-primary);
+            padding: 2rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+            opacity: 0.4;
+        }
+
+        .title-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .title {
+            font-size: 2.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .search-wrapper {
+            position: relative;
+            max-width: 600px;
+            margin: 2rem auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            padding: 0.5rem;
+        }
+
+        .search-instructions {
+            position: absolute;
+            top: -1.5rem;
+            left: 0;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .key-indicator {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.25rem;
+            font-family: monospace;
+            font-size: 0.75rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .search-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.6);
+            pointer-events: none;
+        }
+
+        .search-shortcut {
+            position: absolute;
+            right: 1.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .search-indicator {
+            animation: searchPulse 2s infinite;
+        }
+
+        .table-container {
+            padding: 2rem;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        th {
+            background-color: #f8fafc;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 2px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+
+        tbody tr {
+            transition: all 0.2s ease;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        tbody tr:hover td {
+            background-color: #f8fafc;
+        }
+
+        .badge {
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            transition: all 0.2s ease;
+        }
+
+        .badge i {
+            font-size: 0.75rem;
+        }
+
+        .badge-blue {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-blue:hover {
+            background-color: #bfdbfe;
+        }
+
+        .badge-green {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-green:hover {
+            background-color: #bbf7d0;
+        }
+
+        .badge-yellow {
+            background-color: #fef9c3;
+            color: #854d0e;
+        }
+
+        .badge-yellow:hover {
+            background-color: #fef08a;
+        }
+
+        .badge-red {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-red:hover {
+            background-color: #fecaca;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-primary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+        }
+
+        tr:hover .action-buttons {
+            opacity: 1;
+        }
+
+        .btn-action {
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .btn-action:hover {
+            color: var(--text-primary);
+            background-color: var(--border-color);
+            transform: translateY(-2px);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .alert {
+            margin: 1rem 2rem;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .alert-success {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+
+        .alert-error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                margin: 1rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .title {
+                font-size: 1.75rem;
+            }
+            
+            .search-input {
+                font-size: 0.875rem;
+            }
+
+            .search-wrapper {
+                margin: 1rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .search-shortcut {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">
+                    <i class="fas fa-boxes"></i>
+                    Total Items
+                </div>
+                <div class="stat-value" id="totalItems">{{ stocks|length if stocks else 0 }}</div>
+                <div class="stat-change">
+                    <i class="fas fa-chart-line"></i>
+                    Updated today
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Low Stock Items
+                </div>
+                <div class="stat-value" id="lowStockCount">
+                    {% set low_stock = 0 %}
+                    {% for stock in stocks if stocks %}
+                        {% if stock.current_quantity is not none and stock.current_quantity < 10 %}
+                            {% set low_stock = low_stock + 1 %}
+                        {% endif %}
+                    {% endfor %}
+                    {{ low_stock }}
+                </div>
+                <div class="stat-change" style="color: {{ '#ef4444' if low_stock > 0 else '#10b981' }}">
+                    <i class="fas {{ 'fa-arrow-down' if low_stock > 0 else 'fa-check' }}"></i>
+                    {{ 'Needs attention' if low_stock > 0 else 'Stock levels good' }}
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">
+                    <i class="fas fa-tags"></i>
+                    Total Categories
+                </div>
+                <div class="stat-value" id="categoryCount">
+                    {% if stocks %}
+                        {{ stocks|map(attribute='category')|unique|list|length }}
+                    {% else %}
+                        0
+                    {% endif %}
+                </div>
+                <div class="stat-change">
+                    <i class="fas fa-check-circle"></i>
+                    Categories tracked
+                </div>
+            </div>
+        </div>
+
+        <div class="main-card">
+            <div class="header">
+                <div class="title-wrapper">
+                    <h1 class="title">
+                        <i class="fas fa-warehouse"></i>
+                        Stock Inventory
+                    </h1>
+                    <a href="{{ url_for('stock_registration') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Register New Stock
+                    </a>
+                </div>
+                <div class="search-wrapper">
+                    <div class="search-instructions">
+                        <span class="search-indicator">🔍 Type stock name to search</span>
+                    </div>
+                    <i class="fas fa-search search-icon"></i>
+                    <input 
+                        type="text" 
+                        id="stockSearch" 
+                        class="search-input" 
+                        placeholder="Search for items (e.g., 'LCD Monitor')" 
+                        autocomplete="off"
+                    >
+                    <span class="search-shortcut">Press / to search</span>
+                </div>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-circle' }}"></i>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Measure</th>
+                            <th>Current Quantity</th>
+                            <th>Last Updated</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stockTableBody">
+                        {% if stocks %}
+                            {% for stock in stocks %}
+                                <tr class="stock-row" data-stock-name="{{ stock.name|lower if stock.name else '' }}">
+                                    <td>
+                                        <span class="badge badge-blue">
+                                            <i class="fas fa-tag"></i>
+                                            {{ stock.category or 'Uncategorized' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div style="font-weight: 500;">{{ stock.name or 'Unnamed Item' }}</div>
+                                    </td>
+                                    <td>{{ stock.description or '-' }}</td>
+                                    <td>
+                                        <span class="badge badge-yellow">
+                                            <i class="fas fa-ruler"></i>
+                                            {{ stock.measure or 'N/A' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% set quantity = stock.current_quantity if stock.current_quantity is not none else 0 %}
+                                        {% set quantity_class = 'badge-red' if quantity < 10 else 'badge-yellow' if quantity < 50 else 'badge-green' %}
+                                        <span class="badge {{ quantity_class }}">
+                                            <i class="fas fa-boxes"></i>
+                                            {{ quantity }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                            <i class="fas fa-clock" style="color: var(--text-secondary)"></i>
+                                            {{ stock.last_updated.strftime('%Y-%m-%d %H:%M') if stock.last_updated else 'Never' }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a href="{{ url_for('stock_in_form', stock_id=stock.id) }}" 
+                                               class="btn btn-action" 
+                                               title="Stock In">
+                                                <i class="fas fa-arrow-circle-up"></i>
+                                            </a>
+                                            <a href="{{ url_for('stock_out_form', stock_id=stock.id) }}" 
+                                               class="btn btn-action" 
+                                               title="Stock Out">
+                                                <i class="fas fa-arrow-circle-down"></i>
+                                            </a>
+                                            <a href="{{ url_for('stock_history', stock_id=stock.id) }}" 
+                                               class="btn btn-action" 
+                                               title="History">
+                                                <i class="fas fa-history"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr id="noStocksRow">
+                                <td colspan="7">
+                                    <div class="empty-state">
+                                        <i class="fas fa-box-open empty-state-icon"></i>
+                                        <h3>No Stock Items Found</h3>
+                                        <p>Start by adding your first inventory item</p>
+                                        <a href="{{ url_for('stock_registration') }}" class="btn btn-primary" style="margin-top: 1rem;">
+                                            <i class="fas fa-plus"></i>
+                                            Add Your First Item
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('stockSearch');
+            const tableBody = document.getElementById('stockTableBody');
+            const rows = tableBody.getElementsByClassName('stock-row');
+            let searchTimeout;
+
+            // Create no results row
+            function createNoResultsRow() {
+                const row = document.createElement('tr');
+                row.id = 'noResultsRow';
+                row.innerHTML = `
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <i class="fas fa-search empty-state-icon"></i>
+                            <h3>No matching items found</h3>
+                            <p>Try adjusting your search terms</p>
+                        </div>
+                    </td>
+                `;
+                return row;
+            }
+
+            // Remove existing no results row
+            function removeNoResultsRow() {
+                const existingNoResults = document.getElementById('noResultsRow');
+                if (existingNoResults) {
+                    existingNoResults.remove();
+                }
+            }
+
+            // Perform search
+            function performSearch() {
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                let hasVisibleRows = false;
+                removeNoResultsRow();
+
+                Array.from(rows).forEach(row => {
+                    const stockName = row.dataset.stockName;
+                    if (stockName && stockName.includes(searchTerm)) {
+                        row.style.display = '';
+                        row.style.animation = 'fadeIn 0.3s ease-out';
+                        hasVisibleRows = true;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                if (!hasVisibleRows && searchTerm !== '') {
+                    tableBody.appendChild(createNoResultsRow());
+                }
+
+                // Update stats
+                updateStats();
+            }
+
+            // Update statistics
+            function updateStats() {
+                const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none');
+                
+                // Update total items count
+                document.getElementById('totalItems').textContent = visibleRows.length;
+
+                // Update low stock count
+                const lowStockCount = visibleRows.filter(row => {
+                    const quantityBadge = row.querySelector('.badge-red');
+                    return quantityBadge !== null;
+                }).length;
+                document.getElementById('lowStockCount').textContent = lowStockCount;
+
+                // Update categories count
+                const categories = new Set(
+                    visibleRows.map(row => 
+                    row.querySelector('.badge-blue').textContent.trim()
+                    )
+                );
+                document.getElementById('categoryCount').textContent = categories.size;
+            }
+
+            // Add event listener for search input with debounce
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(performSearch, 300);
+            });
+
+            // Keyboard shortcut for search
+            document.addEventListener('keydown', function(e) {
+                if (e.key === '/' && document.activeElement !== searchInput) {
+                    e.preventDefault();
+                    searchInput.focus();
+                }
+                // Press Escape to clear search
+                if (e.key === 'Escape' && document.activeElement === searchInput) {
+                    searchInput.value = '';
+                    performSearch();
+                    searchInput.blur();
+                }
+            });
+
+            // Clear search
+            searchInput.addEventListener('search', function() {
+                if (this.value === '') {
+                    performSearch();
+                }
+            });
+
+            // Initialize tooltips for action buttons
+            const buttons = document.querySelectorAll('.btn-action');
+            buttons.forEach(button => {
+                button.addEventListener('mouseenter', function(e) {
+                    const title = this.getAttribute('title');
+                    if (!title) return;
+
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'tooltip';
+                    tooltip.style.cssText = `
+                        position: absolute;
+                        background: rgba(0, 0, 0, 0.8);
+                        color: white;
+                        padding: 0.5rem 1rem;
+                        border-radius: 0.5rem;
+                        font-size: 0.75rem;
+                        pointer-events: none;
+                        z-index: 1000;
+                        white-space: nowrap;
+                        opacity: 0;
+                        transition: opacity 0.2s ease;
+                    `;
+                    tooltip.textContent = title;
+                    document.body.appendChild(tooltip);
+
+                    const rect = this.getBoundingClientRect();
+                    tooltip.style.left = rect.left + (rect.width - tooltip.offsetWidth) / 2 + 'px';
+                    tooltip.style.top = rect.top - tooltip.offsetHeight - 8 + 'px';
+
+                    // Fade in
+                    setTimeout(() => tooltip.style.opacity = '1', 0);
+
+                    this.addEventListener('mouseleave', function() {
+                        tooltip.style.opacity = '0';
+                        setTimeout(() => tooltip.remove(), 200);
+                    }, { once: true });
+                });
+            });
+
+            // Handle initial search if URL contains search parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const initialSearch = urlParams.get('search');
+            if (initialSearch) {
+                searchInput.value = initialSearch;
+                performSearch();
+            }
+
+            // Add search term to URL for bookmarking
+            function updateSearchParam(search) {
+                const url = new URL(window.location);
+                if (search) {
+                    url.searchParams.set('search', search);
+                } else {
+                    url.searchParams.delete('search');
+                }
+                window.history.replaceState({}, '', url);
+            }
+
+            // Update URL when searching
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    updateSearchParam(this.value);
+                    performSearch();
+                }, 300);
+            });
+        });
+    </script>
+</body>
+</html>

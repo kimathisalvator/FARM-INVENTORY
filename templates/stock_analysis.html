@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Analysis Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #2c3e50;
+        }
+        
+        .card-title {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.2em;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #2c3e50;
+            color: white;
+        }
+        
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .stat-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .alert-row {
+            color: #721c24;
+            background-color: #f8d7da;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+        
+        .success-row {
+            color: #155724;
+            background-color: #d4edda;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+        
+        .header {
+            margin-bottom: 30px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .btn {
+            background-color: #2c3e50;
+            color: white;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 4px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Stock Analysis Dashboard</h1>
+            <a href="{{ url_for('stock_inventory') }}" class="btn">Back to Inventory</a>
+        </div>
+
+        <!-- Overall Summary -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Overall Summary</h2>
+            </div>
+            <div class="stat-grid">
+                <div class="stat-item">
+                    <div class="stat-value">{{ summary.total_stocks }}</div>
+                    <div class="stat-label">Total Stocks</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ summary.total_categories }}</div>
+                    <div class="stat-label">Categories</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ summary.total_suppliers }}</div>
+                    <div class="stat-label">Suppliers</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">KSH {{ "{:,.2f}".format(summary.total_investment or 0) }}</div>
+                    <div class="stat-label">Total Investment</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- Category Analysis -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Category Analysis</h2>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Items</th>
+                            <th>Quantity</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cat in category_analysis %}
+                            <tr>
+                                <td>{{ cat.category }}</td>
+                                <td>{{ cat.item_count }}</td>
+                                <td>{{ "{:,.2f}".format(cat.total_quantity or 0) }}</td>
+                                <td>KSH {{ "{:,.2f}".format(cat.investment_value or 0) }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Low Stock Alerts -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Low Stock Alerts</h2>
+                </div>
+                {% if low_stock %}
+                    {% for item in low_stock %}
+                        <div class="alert-row">
+                            <strong>{{ item.name }}</strong> ({{ item.category }})
+                            <br>
+                            Current: {{ "{:,.2f}".format(item.current_quantity) }} {{ item.measure }}
+                            <br>
+                            Last Transaction: {{ item.last_transaction_date.strftime('%Y-%m-%d') }}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No low stock items</p>
+                {% endif %}
+            </div>
+
+            <!-- Top Suppliers -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Top Suppliers</h2>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Supplier</th>
+                            <th>Transactions</th>
+                            <th>Total Value</th>
+                            <th>Avg Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for supplier in top_suppliers %}
+                            <tr>
+                                <td>{{ supplier.supplier }}</td>
+                                <td>{{ supplier.transaction_count }}</td>
+                                <td>KSH {{ "{:,.2f}".format(supplier.total_value) }}</td>
+                                <td>KSH {{ "{:,.2f}".format(supplier.avg_price) }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Monthly Summary -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Monthly Summary</h2>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Stock In</th>
+                            <th>Stock Out</th>
+                            <th>Investment</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for month in monthly_summary %}
+                            <tr>
+                                <td>{{ month.month }}</td>
+                                <td>{{ "{:,.2f}".format(month.total_in) }}</td>
+                                <td>{{ "{:,.2f}".format(month.total_out) }}</td>
+                                <td>KSH {{ "{:,.2f}".format(month.total_investment) }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Recent Activity</h2>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Type</th>
+                            <th>Quantity</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for activity in recent_activity %}
+                            <tr>
+                                <td>{{ activity.name }}</td>
+                                <td>
+                                    {% if activity.transaction_type == 'in' %}
+                                        <span style="color: #28a745">IN</span>
+                                    {% else %}
+                                        <span style="color: #dc3545">OUT</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ "{:,.2f}".format(activity.quantity) }}</td>
+                                <td>{{ activity.transaction_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Stock Movement Patterns -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Stock Movement Patterns</h2>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Category</th>
+                            <th>Transactions</th>
+                            <th>Avg. Consumption</th>
+                            <th>Last Movement</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pattern in movement_patterns %}
+                            <tr>
+                                <td>{{ pattern.name }}</td>
+                                <td>{{ pattern.category }}</td>
+                                <td>{{ pattern.transaction_count }}</td>
+                                <td>{{ "{:,.2f}".format(pattern.avg_consumption or 0) }}</td>
+                                <td>{{ pattern.last_movement.strftime('%Y-%m-%d') }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Value Analysis -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Value Analysis</h2>
+                </div>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-value">
+                            KSH {{ "{:,.2f}".format(summary.total_investment or 0) }}
+                        </div>
+                        <div class="stat-label">Total Investment</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">
+                            {{ summary.total_stocks }}
+                        </div>
+                        <div class="stat-label">Active Items</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">
+                            KSH {{ "{:,.2f}".format((summary.total_investment or 0) / (summary.total_stocks or 1)) }}
+                        </div>
+                        <div class="stat-label">Avg. Investment per Item</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Statistics -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Key Statistics</h2>
+                </div>
+                <table>
+                    <tr>
+                        <th>Category</th>
+                        <th>Value</th>
+                    </tr>
+                    <tr>
+                        <td>Total Categories</td>
+                        <td>{{ summary.total_categories }}</td>
+                    </tr>
+                    <tr>
+                        <td>Total Suppliers</td>
+                        <td>{{ summary.total_suppliers }}</td>
+                    </tr>
+                    <tr>
+                        <td>Total Quantity</td>
+                        <td>{{ "{:,.2f}".format(summary.total_quantity or 0) }}</td>
+                    </tr>
+                    <tr>
+                        <td>Avg Items per Category</td>
+                        <td>{{ "{:,.1f}".format(summary.total_stocks / summary.total_categories if summary.total_categories else 0) }}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Action Items -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Action Items</h2>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    {% if low_stock %}
+                        <div class="alert-row">
+                            <strong>Low Stock Alert:</strong>
+                            {{ low_stock|length }} items need attention
+                        </div>
+                    {% endif %}
+                    
+                    {% for cat in category_analysis %}
+                        {% if cat.total_quantity == 0 %}
+                            <div class="alert-row">
+                                <strong>Empty Category:</strong>
+                                {{ cat.category }} needs restocking
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if recent_activity %}
+                        <div class="success-row">
+                            <strong>Recent Activity:</strong>
+                            Last transaction on {{ recent_activity[0].transaction_date.strftime('%Y-%m-%d') }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Download Reports Section -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Download Reports</h2>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <a href="{{ url_for('download_stock_report') }}" class="btn">Stock Report</a>
+                <a href="{{ url_for('download_transaction_report') }}" class="btn">Transaction Report</a>
+                <a href="{{ url_for('download_supplier_report') }}" class="btn">Supplier Report</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Optional: Add interactive features
+        document.querySelectorAll('table').forEach(table => {
+            table.querySelectorAll('th').forEach((header, index) => {
+                header.addEventListener('click', () => {
+                    sortTable(table, index);
+                });
+            });
+        });
+
+        function sortTable(table, column) {
+            const rows = Array.from(table.querySelectorAll('tbody tr'));
+            const direction = table.querySelector(`th:nth-child(${column + 1})`).classList.contains('asc') ? -1 : 1;
+            
+            const sortedRows = rows.sort((a, b) => {
+                const aText = a.querySelector(`td:nth-child(${column + 1})`).textContent;
+                const bText = b.querySelector(`td:nth-child(${column + 1})`).textContent;
+                return aText.localeCompare(bText) * direction;
+            });
+
+            table.querySelectorAll('th').forEach(th => th.classList.remove('asc', 'desc'));
+            table.querySelector(`th:nth-child(${column + 1})`).classList.add(direction === 1 ? 'asc' : 'desc');
+
+            const tbody = table.querySelector('tbody');
+            tbody.innerHTML = '';
+            sortedRows.forEach(row => tbody.appendChild(row));
+        }
+    </script>
+</body>
+</html>

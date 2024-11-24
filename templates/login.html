@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FF3CAC;
+            --secondary: #784BA0;
+            --tertiary: #2B86C5;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #000;
+            overflow-x: hidden;
+            perspective: 1000px;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .space-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #000000, #1a1a1a);
+            overflow: hidden;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle var(--duration) infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-container {
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotateX(0) rotateY(0); }
+            25% { transform: translateY(-10px) rotateX(5deg) rotateY(5deg); }
+            75% { transform: translateY(10px) rotateX(-5deg) rotateY(-5deg); }
+        }
+
+        .form-control {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            color: white;
+            padding: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 20px rgba(255, 60, 172, 0.5);
+            transform: translateZ(20px);
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .form-label {
+            color: white;
+            font-weight: 600;
+            text-shadow: 0 0 10px rgba(255, 60, 172, 0.5);
+        }
+
+        .btn-login {
+            background: linear-gradient(45deg, var(--primary), var(--secondary), var(--tertiary));
+            border: none;
+            border-radius: 15px;
+            color: white;
+            font-weight: 600;
+            padding: 1rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+            z-index: 1;
+        }
+
+        .btn-login::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, var(--tertiary), var(--secondary), var(--primary));
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: -1;
+        }
+
+        .btn-login:hover::before {
+            opacity: 1;
+        }
+
+        .btn-login:hover {
+            transform: translateZ(30px) scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 60, 172, 0.7);
+        }
+
+        .digital-circle {
+            position: absolute;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        #code-display {
+            font-family: 'Courier New', monospace;
+            color: var(--primary);
+            font-size: 2rem;
+            text-align: center;
+            margin: 1rem 0;
+            letter-spacing: 0.5rem;
+            text-shadow: 0 0 10px var(--primary);
+        }
+
+        .success-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0;
+        }
+
+        @keyframes success-pulse {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(4); opacity: 0; }
+        }
+
+        .password-field {
+            position: relative;
+        }
+
+        .password-strength {
+            height: 5px;
+            background: #2b2b2b;
+            margin-top: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .strength-meter {
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s, background-color 0.3s;
+        }
+
+        .signup-container {
+            margin-top: 2rem;
+            text-align: center;
+            perspective: 1000px;
+        }
+
+        .signup-text {
+            color: white;
+            margin-right: 10px;
+            font-weight: 500;
+            opacity: 0.8;
+        }
+
+        .signup-link {
+            display: inline-block;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 1rem 2rem;
+            position: relative;
+            transition: all 0.3s;
+            overflow: hidden;
+            border: 2px solid transparent;
+            border-radius: 15px;
+        }
+
+        .signup-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 60, 172, 0.2),
+                transparent
+            );
+            transition: 0.5s;
+        }
+
+        .signup-link:hover::before {
+            left: 100%;
+        }
+
+        .signup-link::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 15px;
+            padding: 2px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary), var(--tertiary));
+            -webkit-mask: 
+                linear-gradient(#fff 0 0) content-box, 
+                linear-gradient(#fff 0 0);
+            mask: 
+                linear-gradient(#fff 0 0) content-box, 
+                linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+        }
+
+        .signup-link:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 0 20px rgba(255, 60, 172, 0.3);
+            color: white;
+        }
+
+        .signup-icon {
+            display: inline-block;
+            margin-left: 5px;
+            transition: transform 0.3s;
+        }
+
+        .signup-link:hover .signup-icon {
+            transform: translateX(5px);
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .alert {
+            background: rgba(255, 60, 172, 0.2);
+            border: none;
+            color: white;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body>
+    <div class="space-background" id="space"></div>
+    
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="login-container">
+                    <div class="card">
+                        <h2 class="text-center mb-4" style="color: white; text-shadow: 0 0 10px var(--primary);">
+                            Welcome Back
+                        </h2>
+                        
+                        <div id="code-display">____</div>
+                        
+                        {% with messages = get_flashed_messages() %}
+                            {% if messages %}
+                                {% for message in messages %}
+                                    <div class="alert">{{ message }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+                        
+                        <form method="POST" action="{{ url_for('login') }}" id="loginForm">
+                            <div class="mb-4">
+                                <label for="code" class="form-label">4-Digit Code</label>
+                                <input type="text" class="form-control" id="code" name="code" 
+                                       pattern="\d{4}" maxlength="4" required
+                                       placeholder="Enter your code">
+                            </div>
+                            
+                            <div class="mb-4 password-field">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password" 
+                                       name="password" required
+                                       placeholder="Enter your password">
+                                <div class="password-strength">
+                                    <div class="strength-meter"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-login">
+                                    Login
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="signup-container">
+                            <span class="signup-text">New to our platform?</span>
+                            <a href="{{ url_for('signup') }}" class="signup-link pulse">
+                                Create Account
+                                <span class="signup-icon">→</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="success-animation"></div>
+
+    <script>
+        // Create animated starfield background
+        function createStars() {
+            const space = document.getElementById('space');
+            for (let i = 0; i < 200; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.setProperty('--duration', `${Math.random() * 3 + 1}s`);
+                space.appendChild(star);
+            }
+        }
+        createStars();
+
+        // Interactive 3D card effect
+        document.addEventListener('mousemove', (e) => {
+            const card = document.querySelector('.card');
+            const rect = card.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const rotateX = (e.clientY - centerY) / 30;
+            const rotateY = -(e.clientX - centerX) / 30;
+            
+            card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        });
+
+        // Digital circle effect
+        document.addEventListener('mousemove', (e) => {
+            const circle = document.createElement('div');
+            circle.className = 'digital-circle';
+            circle.style.left = e.pageX + 'px';
+            circle.style.top = e.pageY + 'px';
+            document.body.appendChild(circle);
+
+            let size = 0;
+            const animate = () => {
+                size += 2;
+                circle.style.width = `${size}px`;
+                circle.style.height = `${size}px`;
+                circle.style.left = `${e.pageX - size/2}px`;
+                circle.style.top = `${e.pageY - size/2}px`;
+                circle.style.opacity = 1 - size/100;
+
+                if (size < 100) {
+                    requestAnimationFrame(animate);
+                } else {
+                    circle.remove();
+                }
+            };
+            animate();
+        });
+
+        // Animated code display
+        const codeInput = document.getElementById('code');
+        const codeDisplay = document.getElementById('code-display');
+        
+        codeInput.addEventListener('input', (e) => {
+            let value = e.target.value;
+            let display = '____';
+            for (let i = 0; i < value.length; i++) {
+                display = display.substring(0, i) + value[i] + display.substring(i + 1);
+            }
+            codeDisplay.textContent = display;
+            
+            if (value.length === 4) {
+                codeDisplay.style.color = 'var(--tertiary)';
+                codeDisplay.style.transform = 'scale(1.1)';
+                setTimeout(() => {
+                    codeDisplay.style.transform = 'scale(1)';
+                }, 200);
+            }
+        });
+
+        // Password strength meter
+        const passwordInput = document.getElementById('password');
+        const strengthMeter = document.querySelector('.strength-meter');
+
+        passwordInput.addEventListener('input', (e) => {
+            const password = e.target.value;
+            let strength = 0;
+            
+            if (password.length > 6) strength += 20;
+            if (password.match(/[A-Z]/)) strength += 20;
+            if (password.match(/[0-9]/)) strength += 20;
+            if (password.match(/[^A-Za-z0-9]/)) strength += 20;
+            if (password.length > 12) strength += 20;
+
+            strengthMeter.style.width = `${strength}%`;
+            
+            if (strength <= 40) {
+                strengthMeter.style.backgroundColor = '#ff4444';
+            } else if (strength <= 80) {
+                strengthMeter.style.backgroundColor = '#ffa700';
+            } else {
+                strengthMeter.style.backgroundColor = '#00C851';
+            }
+        });
+
+        // Success animation
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const success = document.querySelector('.success-animation');
+            success.style.background = 'radial-gradient(circle, transparent 0%, var(--primary) 100%)';
+            success.style.opacity = '1';
+            success.style.animation = 'success-pulse 1s ease-out forwards';
+            
+            setTimeout(() => {
+                e.target.submit();
+            }, 1000);
+        });
+
+        // Signup link effects
+        const signupLink = document.querySelector('.signup-link');
+        
+        signupLink.addEventListener('mouseover', () => {
+            signupLink.classList.remove('pulse');
+        });
+        
+        signupLink.addEventListener('mouseout', () => {
+            signupLink.classList.add('pulse');
+        });
+
+        // Reset card position when mouse leaves
+        document.addEventListener('mouseleave', () => {
+            const card = document.querySelector('.card');
+            card.style.transform = 'rotateX(0) rotateY(0)';
+        });
+
+        // Prevent form submission if code is not 4 digits
+        codeInput.addEventListener('input', (e) => {
+            const value = e.target.value;
+            if (value.length > 4) {
+                e.target.value = value.slice(0, 4);
+            }
+            if (!/^\d*$/.test(value)) {
+                e.target.value = value.replace(/\D/g, '');
+            }
+        });
+
+        // Add smooth transitions when card comes into view
+        document.addEventListener('DOMContentLoaded', () => {
+            const card = document.querySelector('.card');
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                card.style.transition = 'all 0.8s ease-out';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 100);
+        });
+    </script>
+</body>
+</html>

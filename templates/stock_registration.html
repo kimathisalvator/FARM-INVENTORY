@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Registration</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --background: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --input-focus: #3b82f6;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--background);
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            overflow: hidden;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2563eb, #4f46e5);
+            padding: 2rem;
+            color: white;
+            position: relative;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+            opacity: 0.4;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.875rem;
+        }
+
+        .form-container {
+            padding: 2rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .required-star {
+            color: var(--danger);
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            pointer-events: none;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        textarea.form-control {
+            min-height: 120px;
+            padding-left: 1rem;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--input-focus);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-note {
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .suggestion-tag {
+            padding: 0.25rem 0.75rem;
+            background: var(--background);
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .suggestion-tag:hover {
+            background: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--text-secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .alert {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .alert-success {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+
+        .alert-error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .error-feedback {
+            color: var(--danger);
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        .keyboard-shortcut {
+            background: var(--background);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-left: auto;
+        }
+
+        @media (max-width: 640px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <h1 class="title">
+                    <i class="fas fa-boxes"></i>
+                    Stock Registration
+                </h1>
+                <p class="subtitle">Register new stock items to track in the inventory system</p>
+            </div>
+        </div>
+
+        <div class="form-container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-circle' }}"></i>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form id="registrationForm" method="POST" action="{{ url_for('stock_registration') }}">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="category">
+                            <i class="fas fa-tag"></i>
+                            Category
+                            <span class="required-star">*</span>
+                        </label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-folder input-icon"></i>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="category" 
+                                   name="category" 
+                                   required
+                                   placeholder="Enter stock category">
+                        </div>
+                        <div class="form-note">
+                            <i class="fas fa-info-circle"></i>
+                            Common categories:
+                        </div>
+                        <div class="suggestions" id="categorySuggestions">
+                            <span class="suggestion-tag">Feed</span>
+                            <span class="suggestion-tag">Medicine</span>
+                            <span class="suggestion-tag">Equipment</span>
+                            <span class="suggestion-tag">Supplies</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="name">
+                            <i class="fas fa-box"></i>
+                            Name
+                            <span class="required-star">*</span>
+                        </label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-signature input-icon"></i>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="name" 
+                                   name="name" 
+                                   required
+                                   placeholder="Enter stock name">
+                        </div>
+                        <div class="form-note">
+                            <i class="fas fa-info-circle"></i>
+                            Use a clear, specific name for the item
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="description">
+                        <i class="fas fa-align-left"></i>
+                        Description
+                    </label>
+                    <textarea class="form-control" 
+                              id="description" 
+                              name="description"
+                              placeholder="Enter detailed description of the item"></textarea>
+                    <div class="form-note">
+                        <i class="fas fa-info-circle"></i>
+                        Include any relevant details about the item (optional)
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="measure">
+                        <i class="fas fa-ruler"></i>
+                        Measure Unit
+                        <span class="required-star">*</span>
+                    </label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-balance-scale input-icon"></i>
+                        <input type="text" 
+                               class="form-control" 
+                               id="measure" 
+                               name="measure" 
+                               required
+                               placeholder="Enter measurement unit">
+                    </div>
+                    <div class="form-note">
+                        <i class="fas fa-info-circle"></i>
+                        Common units:
+                    </div>
+                    <div class="suggestions" id="measureSuggestions">
+                        <span class="suggestion-tag">g</span>
+                        <span class="suggestion-tag">L</span>
+                        <span class="suggestion-tag">ml</span>
+                        <span class="suggestion-tag">units</span>
+                        <span class="suggestion-tag">pieces</span>
+                        <span class="suggestion-tag">boxes</span>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <i class="fas fa-save"></i>
+                        Register Stock Item
+                        <span class="keyboard-shortcut">Alt + S</span>
+                    </button>
+                    <a href="{{ url_for('stock_inventory') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Inventory
+                        <span class="keyboard-shortcut">Alt + B</span>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('registrationForm');
+            const inputs = {
+                category: document.getElementById('category'),
+                name: document.getElementById('name'),
+                measure: document.getElementById('measure')
+            };
+            const submitBtn = document.getElementById('submitBtn');
+
+            // Setup suggestions
+            function setupSuggestions(field, suggestions) {
+                const container = document.getElementById(`${field}Suggestions`);
+                if (!container) return;
+
+                container.querySelectorAll('.suggestion-tag').forEach(tag => {
+                    tag.addEventListener('click', function() {
+                        inputs[field].value = this.textContent.trim();
+                        validateField(inputs[field]);
+                    });
+                });
+            }
+
+            setupSuggestions('category', document.getElementById('categorySuggestions'));
+            setupSuggestions('measure', document.getElementById('measureSuggestions'));
+
+            // Field validation
+            function validateField(input) {
+                const value = input.value.trim();
+                const errorId = `${input.id}-error`;
+                let existingError = document.getElementById(errorId);
+
+                if (existingError) {
+                    existingError.remove();
+                }
+
+                input.style.borderColor = '';
+                
+                if (!value && input.required) {
+                    showError(input, 'This field is required');
+                    return false;
+                }
+
+                if (input.id === 'name' && value.length < 3) {
+                    showError(input, 'Name must be at least 3 characters long');
+                    return false;
+                }
+
+                return true;
+            }
+
+            // Show error message
+            function showError(input, message) {
+                input.style.borderColor = 'var(--danger)';
+                
+                const errorDiv = document.createElement('div');
+                errorDiv.id = `${input.id}-error`;
+                errorDiv.className = 'error-feedback';
+                errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i>${message}`;
+                
+                const existingNote = input.parentElement.nextElementSibling;
+                input.parentElement.parentElement.insertBefore(errorDiv, existingNote);
+            }
+
+            // Input event listeners
+            Object.values(inputs).forEach(input => {
+                input.addEventListener('input', function() {
+                    validateField(this);
+                });
+
+                input.addEventListener('blur', function() {
+                    validateField(this);
+                });
+            });
+
+            // Form submission
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                let isValid = true;
+                Object.values(inputs).forEach(input => {
+                    if (!validateField(input)) {
+                        isValid = false;
+                    }
+                });
+
+                if (!isValid) {
+                    const firstError = document.querySelector('.error-feedback');
+                    if (firstError) {
+                        firstError.previousElementSibling.querySelector('input').focus();
+                    }
+                    return;
+                }
+
+                // Show loading state
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
+                
+                // Submit the form
+                this.submit();
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Alt + S to submit form
+                if (e.altKey && e.key === 's') {
+                    e.preventDefault();
+                    form.dispatchEvent(new Event('submit'));
+                }
+                
+                // Alt + B to go back
+                if (e.altKey && e.key === 'b') {
+                    e.preventDefault();
+                    window.location.href = "{{ url_for('stock_inventory') }}";
+                }
+            });
+
+            // Character counter for description
+            const description = document.getElementById('description');
+            description.addEventListener('input', function() {
+                let counterDiv = document.querySelector('.char-counter');
+                if (!counterDiv) {
+                    counterDiv = document.createElement('div');
+                    counterDiv.className = 'form-note char-counter';
+                    this.parentElement.appendChild(counterDiv);
+                }
+                
+                const chars = this.value.length;
+                counterDiv.innerHTML = `<i class="fas fa-${chars > 0 ? 'check-circle' : 'info-circle'}"></i>${chars} characters`;
+            });
+        });
+    </script>
+</body>
+</html>

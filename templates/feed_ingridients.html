@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feed Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .formulation-card {
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .formulation-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .formulation-card.active {
+            border: 2px solid #0d6efd;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container-fluid py-4">
+        <!-- Main Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2>Feed Formulation System</h2>
+                    <a href="{{ url_for('add_formulation') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add New Formulation
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="row">
+            <!-- Formulations List -->
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">Available Formulations</h5>
+                    </div>
+                    <div class="card-body p-2">
+                        {% if formulations %}
+                            <div class="list-group list-group-flush">
+                                {% for formulation in formulations %}
+                                    <div class="list-group-item list-group-item-action formulation-card" 
+                                         onclick="selectFormulation({{ formulation.id }}, '{{ formulation.name }}')">
+                                        <h6 class="mb-1">{{ formulation.name }}</h6>
+                                        <p class="mb-1 small text-muted">{{ formulation.description or 'No description' }}</p>
+                                        <small class="text-muted">Created: {{ formulation.created_at }}</small>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info m-2">
+                                No formulations available.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calculator Section -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0" id="selectedFormulationTitle">Feed Calculator</h5>
+                        <span class="badge bg-light text-dark">
+                            Total: <span id="totalPercentage">0</span>%
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <!-- Calculator Input -->
+                        <div class="bg-light p-3 rounded mb-4">
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    <label class="form-label">Enter Total Feed Amount</label>
+                                    <div class="input-group">
+                                        <input type="number" 
+                                               id="totalFeedAmount" 
+                                               class="form-control" 
+                                               value="100" 
+                                               min="0" 
+                                               step="0.01">
+                                        <span class="input-group-text">KG</span>
+                                        <button class="btn btn-success" onclick="calculateQuantities()">
+                                            <i class="fas fa-calculator"></i> Calculate
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Progress</label>
+                                    <div class="progress" style="height: 38px;">
+                                        <div class="progress-bar" id="percentageBar" role="progressbar"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ingredients Table -->
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Ingredient</th>
+                                        <th class="text-center">Available Stock</th>
+                                        <th class="text-center">Percentage (%)</th>
+                                        <th class="text-center">Required Amount</th>
+                                        <th class="text-center">Status</th>
+                                        <th class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for ingredient in ingredients %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ ingredient.name }}</strong>
+                                                <br>
+                                                <small class="text-muted">{{ ingredient.description or 'No description' }}</small>
+                                            </td>
+                                            <td class="text-center">
+                                                {% if ingredient.quantity > 0 %}
+                                                    <span class="badge bg-success">{{ "%.2f"|format(ingredient.quantity) }}</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">Out of Stock</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-center" style="width: 150px;">
+                                                <div class="input-group input-group-sm">
+                                                    <input type="number" 
+                                                           class="form-control text-center percentage-input" 
+                                                           value="0" 
+                                                           min="0" 
+                                                           max="100" 
+                                                           step="0.01" 
+                                                           data-id="{{ ingredient.id }}"
+                                                           disabled>
+                                                    <span class="input-group-text">%</span>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <strong class="required-amount">0.00</strong> KG
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="stock-status badge bg-secondary">Not Set</span>
+                                            </td>
+                                            <td class="text-center">
+                                                <button class="btn btn-sm btn-primary save-btn" 
+                                                        data-id="{{ ingredient.id }}" 
+                                                        disabled>
+                                                    <i class="fas fa-save"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        let currentFormulationId = null;
+
+        function updateTotalPercentage() {
+            let total = 0;
+            $('.percentage-input').each(function() {
+                total += parseFloat($(this).val() || 0);
+            });
+            
+            const formattedTotal = total.toFixed(2);
+            $('#totalPercentage').text(formattedTotal);
+            $('#percentageBar').css('width', Math.min(total, 100) + '%');
+            
+            if (total > 100) {
+                $('#percentageBar').removeClass('bg-success bg-warning').addClass('bg-danger');
+            } else if (total < 100) {
+                $('#percentageBar').removeClass('bg-success bg-danger').addClass('bg-warning');
+            } else {
+                $('#percentageBar').removeClass('bg-warning bg-danger').addClass('bg-success');
+            }
+
+            calculateQuantities();
+        }
+
+        function calculateQuantities() {
+            const totalAmount = parseFloat($('#totalFeedAmount').val() || 0);
+            
+            $('.percentage-input').each(function() {
+                const row = $(this).closest('tr');
+                const percentage = parseFloat($(this).val() || 0);
+                const requiredAmount = (percentage * totalAmount) / 100;
+                const availableStock = parseFloat(row.find('.badge:not(.stock-status)').text() || 0);
+                
+                row.find('.required-amount').text(requiredAmount.toFixed(2));
+                
+                const statusBadge = row.find('.stock-status');
+                if (percentage === 0) {
+                    statusBadge.removeClass('bg-success bg-danger').addClass('bg-secondary').text('Not Required');
+                } else if (requiredAmount > availableStock) {
+                    statusBadge.removeClass('bg-success bg-secondary').addClass('bg-danger').text('Insufficient');
+                } else {
+                    statusBadge.removeClass('bg-danger bg-secondary').addClass('bg-success').text('Available');
+                }
+            });
+        }
+
+        function selectFormulation(id, name) {
+            currentFormulationId = id;
+            $('.formulation-card').removeClass('active');
+            $(`.formulation-card:has(:contains('${name}'))`).addClass('active');
+            $('#selectedFormulationTitle').text(name);
+            
+            // Reset and enable inputs
+            $('.percentage-input').val('0').prop('disabled', false);
+            $('.save-btn').prop('disabled', false);
+            $('.stock-status').removeClass('bg-success bg-danger').addClass('bg-secondary').text('Not Set');
+            $('.required-amount').text('0.00');
+            
+            // Load formulation data
+            $.get(`/get_formulation/${id}`, function(response) {
+                if (response.success) {
+                    response.composition.forEach(comp => {
+                        $(`.percentage-input[data-id="${comp.stock_id}"]`).val(comp.percentage);
+                    });
+                    updateTotalPercentage();
+                }
+            });
+        }
+
+        $(document).ready(function() {
+            $('.percentage-input').on('input', function() {
+                let value = parseFloat($(this).val());
+                if (isNaN(value)) value = 0;
+                if (value < 0) value = 0;
+                if (value > 100) value = 100;
+                $(this).val(value);
+                updateTotalPercentage();
+            });
+
+            $('#totalFeedAmount').on('input', function() {
+                let value = parseFloat($(this).val());
+                if (isNaN(value) || value < 0) {
+                    value = 0;
+                    $(this).val(value);
+                }
+                calculateQuantities();
+            });
+
+            $('.save-btn').click(function() {
+                const btn = $(this);
+                const stockId = btn.data('id');
+                const percentage = $(`.percentage-input[data-id="${stockId}"]`).val();
+
+                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+                $.ajax({
+                    url: '/update_feed_percentage',
+                    method: 'POST',
+                    data: {
+                        formulation_id: currentFormulationId,
+                        stock_id: stockId,
+                        percentage: percentage
+                    },
+                    success: function(response) {
+                        alert('Updated successfully');
+                    },
+                    error: function(xhr) {
+                        alert('Error updating percentage');
+                    },
+                    complete: function() {
+                        btn.prop('disabled', false).html('<i class="fas fa-save"></i>');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
